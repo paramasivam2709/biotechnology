@@ -358,7 +358,7 @@
     <nav class="fixed top-0 left-0 w-full z-50 transition-all duration-500 glass ml-0 md:ml-0">
         <div class="px-4 py-4 flex items-center justify-between max-w-7xl mx-auto">
             <div class="flex items-center gap-4">
-                <button class="md:hidden magnetic-btn p-2 rounded-lg hover:bg-slate-100" id="sidebar-toggle">
+                <button class="md:hidden magnetic-btn p-2 rounded-lg hover:bg-slate-100" id="mobile-menu-btn">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
@@ -793,6 +793,28 @@
                 });
             }
         }
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+
+        function openMobileMenu() {
+            mobileMenu.classList.remove('translate-x-full');
+            mobileMenuOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            mobileMenu.classList.add('translate-x-full');
+            mobileMenuOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', openMobileMenu);
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
     </script>
 </body>
 </html>
