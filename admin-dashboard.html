@@ -1,997 +1,571 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Stackly</title>
+    <title>Stackly Health — Doctor Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #050505; color: #fff; overflow-x: hidden; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 4px; }
+
+        /* Aurora BG */
+        .aurora-bg {
+            position: fixed; width: 150%; height: 150%; top: -25%; left: -25%; pointer-events: none; z-index: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(34,197,94,.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(34,197,94,.06) 0%, transparent 50%);
+            animation: auroraMove 20s ease-in-out infinite;
+        }
+        @keyframes auroraMove {
+            0%,100%{transform:translate(0,0) rotate(0)}
+            25%{transform:translate(5%,5%) rotate(5deg)}
+            50%{transform:translate(-5%,10%) rotate(-5deg)}
+            75%{transform:translate(10%,-5%) rotate(3deg)}
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #ffffff 100%);
-            overflow-x: hidden;
-            cursor: none;
-        }
+        /* Noise */
+        .noise { position:fixed; inset:0; pointer-events:none; opacity:.03; z-index:1000;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-        /* Custom Cursor */
-        .cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #0ea5e9;
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.2s, background 0.2s;
-            mix-blend-mode: difference;
-        }
+        .glass { background:rgba(255,255,255,.03); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.07); }
+        .glass-green { background:rgba(34,197,94,.06); backdrop-filter:blur(10px); border:1px solid rgba(34,197,94,.15); }
 
-        .cursor-follower {
-            width: 40px;
-            height: 40px;
-            background: rgba(14, 165, 233, 0.1);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9998;
-            transition: transform 0.4s ease-out;
-        }
-
-        .cursor.hover {
-            transform: scale(2);
-            background: #0ea5e9;
-        }
-
-        /* Glassmorphism Utilities */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .glass-dark {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Floating Animation */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
-        }
-
-        @keyframes float-reverse {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(20px) rotate(-2deg); }
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(14, 165, 233, 0.6); }
-        }
-
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-reverse { animation: float-reverse 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float 6s ease-in-out infinite 2s; }
-        .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
-        .animate-breathe { animation: breathe 4s ease-in-out infinite; }
-
-        /* 3D Card Effect */
-        .card-3d {
-            transform-style: preserve-3d;
-            transition: transform 0.3s;
-        }
-
-        .card-3d:hover {
-            transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
-        }
-
-        /* Gradient Text */
         .gradient-text {
-            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background:linear-gradient(135deg,#22c55e 0%,#4ade80 50%,#22c55e 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+            background-size:200%; animation:gradientShift 3s ease infinite;
         }
+        @keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
 
-        /* Magnetic Button */
-        .magnetic-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .magnetic-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .magnetic-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        /* Scroll Progress */
-        .scroll-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #0ea5e9, #10b981);
-            z-index: 10000;
-            transform-origin: left;
-            transform: scaleX(0);
-        }
-
-        /* Navigation */
-        .nav-link {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #0ea5e9;
-            transform: translateX(-100%);
-            transition: transform 0.3s;
-        }
-
-        .nav-link:hover::after {
-            transform: translateX(0);
-        }
-
-        /* Reveal Animation Classes */
-        .reveal-up {
-            opacity: 0;
-            transform: translateY(50px);
-        }
-
-        .reveal-left {
-            opacity: 0;
-            transform: translateX(-50px);
-        }
-
-        .reveal-right {
-            opacity: 0;
-            transform: translateX(50px);
-        }
-
-        .reveal-scale {
-            opacity: 0;
-            transform: scale(0.8);
-        }
+        .btn-glow { position:relative; overflow:hidden; }
+        .btn-glow::after { content:''; position:absolute; inset:-2px;
+            background:linear-gradient(90deg,#22c55e,#4ade80,#22c55e);
+            border-radius:inherit; z-index:-1; opacity:0; transition:opacity .3s; filter:blur(10px); }
+        .btn-glow:hover::after { opacity:.6; }
 
         /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: 280px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.5);
-            z-index: 1000;
-            transform: translateX(-100%);
-            transition: transform 0.3s;
+        .sidebar { width: 260px; min-width: 260px; transition: width .3s ease; }
+        .sidebar.collapsed { width: 72px; min-width: 72px; }
+        .sidebar.collapsed .nav-label, .sidebar.collapsed .sidebar-logo-text, .sidebar.collapsed .user-info { display: none; }
+        .sidebar.collapsed .nav-item { justify-content: center; }
+
+        /* Glow Orb */
+        .glow-orb {
+            position:fixed; border-radius:50%; filter:blur(80px); opacity:.25; pointer-events:none; z-index:0;
+            animation:floatOrb 10s ease-in-out infinite;
+        }
+        @keyframes floatOrb { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-30px) scale(1.1)} }
+
+        /* Stat Cards */
+        .stat-card { transition: all .4s cubic-bezier(.4,0,.2,1); }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(34,197,94,.15); }
+
+        /* Reveal */
+        .reveal { opacity:0; transform:translateY(24px); transition:all .7s cubic-bezier(.5,0,0,1); }
+        .reveal.active { opacity:1; transform:translateY(0); }
+
+        /* Heartbeat line */
+        .heartbeat-line {
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: drawLine 2s ease forwards;
+        }
+        @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+        /* Pulse dot */
+        .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+        /* Activity bar */
+        .activity-bar { animation: growBar .8s ease forwards; transform-origin: bottom; }
+        @keyframes growBar { from{transform:scaleY(0)} to{transform:scaleY(1)} }
+
+        /* Spin slow */
+        @keyframes spinSlow { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        .spin-slow { animation: spinSlow 12s linear infinite; }
+
+        /* Counter */
+        .counter { font-variant-numeric: tabular-nums; }
+
+        /* Progress ring */
+        .progress-ring-fill { transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1); }
+
+        /* Notification badge */
+        @keyframes badgePop { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+        .badge-pop { animation: badgePop .4s cubic-bezier(.4,0,.2,1) forwards; }
+
+        /* Patient list row hover */
+        .patient-row { transition: all .25s ease; }
+        .patient-row:hover { background: rgba(34,197,94,.06); }
+
+        /* Sidebar active */
+        .nav-item.active { background: rgba(34,197,94,.12); border-left: 3px solid #22c55e; }
+        .nav-item { border-left: 3px solid transparent; transition: all .25s ease; }
+        .nav-item:hover:not(.active) { background: rgba(255,255,255,.04); }
+
+        /* Mobile overlay */
+        #sidebarOverlay { display:none; }
+        @media(max-width:768px) {
+            .sidebar { position:fixed; z-index:40; height:100vh; transform:translateX(-100%); transition:transform .3s ease; }
+            .sidebar.open { transform:translateX(0); }
+            #sidebarOverlay.show { display:block; }
+            .main-content { margin-left:0 !important; }
         }
 
-        .sidebar.open {
-            transform: translateX(0);
-        }
+        /* Chart tooltip */
+        .chart-tooltip { position:absolute; background:rgba(10,10,10,.95); border:1px solid rgba(34,197,94,.3); padding:8px 12px; border-radius:8px; font-size:12px; pointer-events:none; display:none; white-space:nowrap; z-index:100; }
 
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
+        /* Card enter stagger */
+        .stagger-1 { animation-delay:.05s }
+        .stagger-2 { animation-delay:.1s }
+        .stagger-3 { animation-delay:.15s }
+        .stagger-4 { animation-delay:.2s }
 
-        .sidebar-overlay.open {
-            opacity: 1;
-            visibility: visible;
-        }
+        @keyframes fadeSlideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .fade-slide-up { animation: fadeSlideUp .6s ease forwards; opacity:0; }
 
-        /* Stats Cards */
-        .stat-card {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.1));
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            transition: all 0.3s;
-        }
+        /* Skeleton loader */
+        @keyframes shimmer { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
+        .shimmer { background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(34,197,94,.06) 50%,rgba(255,255,255,.03) 75%); background-size:400px 100%; animation:shimmer 1.5s infinite; }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2);
-        }
-
-        /* Hide scrollbar but keep functionality */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        /* Scrollable area */
+        .scroll-area { overflow-y:auto; }
+        .scroll-area::-webkit-scrollbar { width:4px; }
+        .scroll-area::-webkit-scrollbar-thumb { background:rgba(34,197,94,.3); border-radius:2px; }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="antialiased">
+    <div class="noise"></div>
+    <div class="aurora-bg"></div>
+    <div class="glow-orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(34,197,94,.4) 0%,transparent 70%);top:10%;right:-100px;animation-delay:0s;"></div>
+    <div class="glow-orb" style="width:300px;height:300px;background:radial-gradient(circle,rgba(34,197,94,.3) 0%,transparent 70%);bottom:20%;left:-80px;animation-delay:-5s;"></div>
 
-    <!-- Custom Cursor -->
-    <div class="cursor" id="cursor"></div>
-    <div class="cursor-follower" id="cursor-follower"></div>
+    <!-- Sidebar Overlay (mobile) -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-30 backdrop-blur-sm" onclick="toggleSidebar()"></div>
 
-    <!-- Scroll Progress -->
-    <div class="scroll-progress" id="scroll-progress"></div>
-
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="p-6">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="w-12 h-12 bg-sky-500 rounded-full flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
+    <div class="flex min-h-screen relative z-10">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar glass flex flex-col py-6 relative z-40">
+            <!-- Logo -->
+            <div class="px-5 mb-8 flex items-center gap-3">
+                <div class="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-black"></i>
                 </div>
-                <div>
-                    <div class="font-bold text-slate-800">Admin Panel</div>
-                    <div class="text-sm text-slate-500">System Administrator</div>
+                <span class="sidebar-logo-text text-lg font-bold">Stackly<span class="text-green-500">.</span></span>
+            </div>
+
+            <!-- Role Badge -->
+            <div class="px-5 mb-6">
+                <div class="glass-green rounded-xl px-3 py-2 flex items-center gap-2">
+                    <i data-lucide="stethoscope" class="w-4 h-4 text-green-400 flex-shrink-0"></i>
+                    <span class="nav-label text-xs font-semibold text-green-400 uppercase tracking-widest">Doctor Portal</span>
                 </div>
             </div>
 
-            <nav class="space-y-2">
-                <a href="#dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-50 text-sky-700 font-medium">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"/>
-                    </svg>
-                    Dashboard
+            <!-- Nav -->
+            <nav class="flex-1 px-3 space-y-1">
+                <a href="#" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-white">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 text-green-400 flex-shrink-0"></i>
+                    <span class="nav-label">Dashboard</span>
                 </a>
-                <a href="#users" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-                    </svg>
-                    User Management
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">My Patients</span>
                 </a>
-                <a href="#appointments" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Appointments
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="calendar" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Appointments</span>
+                    <span class="nav-label ml-auto text-xs bg-green-500 text-black font-bold px-2 py-0.5 rounded-full">3</span>
                 </a>
-                <a href="#reports" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    Reports
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Records</span>
                 </a>
-                <a href="#settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Settings
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="activity" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Monitoring</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="flask-conical" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Lab Results</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="message-circle" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Messages</span>
+                    <span class="nav-label ml-auto text-xs bg-green-500 text-black font-bold px-2 py-0.5 rounded-full">5</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-400">
+                    <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="nav-label">Settings</span>
                 </a>
             </nav>
 
-            <div class="mt-8 pt-8 border-t border-slate-200">
-                <a href="login.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    Logout
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top Navigation -->
-    <nav class="fixed top-0 left-0 w-full z-50 transition-all duration-500 glass ml-0 md:ml-0">
-        <div class="px-4 py-4 flex items-center justify-between max-w-7xl mx-auto">
-            <div class="flex items-center gap-4">
-                <button class="md:hidden magnetic-btn p-2 rounded-lg hover:bg-slate-100" id="sidebar-toggle">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <div class="flex items-center gap-2">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" fill="#0ea5e9"/>
-                        <path d="M16 8v8l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="text-xl font-bold text-slate-800">StacklyAdmin</span>
+            <!-- User -->
+            <div class="px-4 mt-6 pt-6 border-t border-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center text-black font-bold text-sm flex-shrink-0">DR</div>
+                    <div class="user-info">
+                        <p class="text-sm font-semibold">Dr. Richards</p>
+                        <p class="text-xs text-gray-500">Cardiologist</p>
+                    </div>
                 </div>
             </div>
+        </aside>
 
-            <div class="flex items-center gap-4">
-                <div class="hidden md:flex items-center gap-6">
-                    <div class="text-right">
-                        <div class="text-sm font-medium text-slate-800">Welcome back, Admin</div>
-                        <div class="text-xs text-slate-500">System Administrator</div>
+        <!-- Main -->
+        <div class="main-content flex-1 flex flex-col min-w-0 ml-0 md:ml-0">
+            <!-- Top bar -->
+            <header class="glass sticky top-0 z-20 px-6 py-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="p-2 rounded-xl glass hover:bg-green-500/10 transition-all">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg font-bold">Good morning, <span class="gradient-text">Dr. Richards</span> 👋</h1>
+                        <p class="text-xs text-gray-500">Monday, 23 Mar 2026 · 12 patients scheduled</p>
                     </div>
-                    <div class="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="relative hidden sm:block">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" placeholder="Search patients..." class="glass rounded-full pl-9 pr-4 py-2 text-sm bg-transparent outline-none w-48 focus:w-64 transition-all focus:border-green-500/50 placeholder-gray-600">
+                    </div>
+                    <button class="relative p-2 rounded-xl glass hover:bg-green-500/10 transition-all">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-green-500 rounded-full badge-pop"></span>
+                    </button>
+                    <button class="p-2 rounded-xl glass hover:bg-green-500/10 transition-all">
+                        <i data-lucide="sun" class="w-5 h-5 text-green-400"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 p-6 space-y-6 overflow-auto">
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="stat-card glass rounded-2xl p-5 fade-slide-up stagger-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-11 h-11 glass-green rounded-xl flex items-center justify-center">
+                                <i data-lucide="users" class="w-5 h-5 text-green-400"></i>
+                            </div>
+                            <span class="text-xs text-green-400 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +12%</span>
+                        </div>
+                        <p class="text-3xl font-bold counter" data-target="248">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Total Patients</p>
+                        <div class="h-1 bg-gray-800 rounded-full mt-3">
+                            <div class="h-1 bg-green-500 rounded-full" style="width:72%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass rounded-2xl p-5 fade-slide-up stagger-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-11 h-11 glass-green rounded-xl flex items-center justify-center">
+                                <i data-lucide="calendar-check" class="w-5 h-5 text-green-400"></i>
+                            </div>
+                            <span class="text-xs text-green-400 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +4</span>
+                        </div>
+                        <p class="text-3xl font-bold counter" data-target="12">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Today's Appointments</p>
+                        <div class="h-1 bg-gray-800 rounded-full mt-3">
+                            <div class="h-1 bg-green-500 rounded-full" style="width:55%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass rounded-2xl p-5 fade-slide-up stagger-3">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-11 h-11 glass-green rounded-xl flex items-center justify-center">
+                                <i data-lucide="heart-pulse" class="w-5 h-5 text-green-400"></i>
+                            </div>
+                            <span class="text-xs text-red-400 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Critical</span>
+                        </div>
+                        <p class="text-3xl font-bold counter" data-target="3">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Critical Cases</p>
+                        <div class="h-1 bg-gray-800 rounded-full mt-3">
+                            <div class="h-1 bg-red-500 rounded-full" style="width:25%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass rounded-2xl p-5 fade-slide-up stagger-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-11 h-11 glass-green rounded-xl flex items-center justify-center">
+                                <i data-lucide="star" class="w-5 h-5 text-green-400"></i>
+                            </div>
+                            <span class="text-xs text-green-400 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +0.2</span>
+                        </div>
+                        <p class="text-3xl font-bold">4.9</p>
+                        <p class="text-xs text-gray-500 mt-1">Patient Rating</p>
+                        <div class="h-1 bg-gray-800 rounded-full mt-3">
+                            <div class="h-1 bg-green-500 rounded-full" style="width:98%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts + Vitals -->
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- Heart Rate Chart -->
+                    <div class="lg:col-span-2 glass rounded-2xl p-6 fade-slide-up">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="font-bold text-lg">Patient Heart Rate Monitor</h3>
+                                <p class="text-xs text-gray-500">Real-time ECG — Sarah Johnson</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-green-400 text-sm">
+                                <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>
+                                Live
+                            </div>
+                        </div>
+                        <svg viewBox="0 0 500 120" class="w-full h-28" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="ecgGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#22c55e" stop-opacity=".3"/>
+                                    <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0,80 L40,80 L50,80 L60,20 L70,100 L80,80 L120,80 L130,80 L140,20 L150,100 L160,80 L200,80 L210,80 L220,20 L230,100 L240,80 L280,80 L290,80 L300,20 L310,100 L320,80 L360,80 L370,80 L380,20 L390,100 L400,80 L440,80 L450,80 L460,20 L470,100 L480,80 L500,80" fill="url(#ecgGrad)" stroke="none"/>
+                            <path class="heartbeat-line" d="M0,80 L40,80 L50,80 L60,20 L70,100 L80,80 L120,80 L130,80 L140,20 L150,100 L160,80 L200,80 L210,80 L220,20 L230,100 L240,80 L280,80 L290,80 L300,20 L310,100 L320,80 L360,80 L370,80 L380,20 L390,100 L400,80 L440,80 L450,80 L460,20 L470,100 L480,80 L500,80"
+                                fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
+                        <div class="flex gap-6 mt-4 pt-4 border-t border-white/5">
+                            <div><p class="text-2xl font-bold text-green-400">72 <span class="text-sm text-gray-500 font-normal">bpm</span></p><p class="text-xs text-gray-600">Heart Rate</p></div>
+                            <div><p class="text-2xl font-bold">98 <span class="text-sm text-gray-500 font-normal">%</span></p><p class="text-xs text-gray-600">SpO2</p></div>
+                            <div><p class="text-2xl font-bold">120/80 <span class="text-sm text-gray-500 font-normal">mmHg</span></p><p class="text-xs text-gray-600">Blood Pressure</p></div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="pt-20 md:pt-24 pl-0 md:pl-0">
-        <div class="max-w-7xl mx-auto px-4">
-
-            <!-- Welcome Section -->
-            <div class="mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Dashboard Overview</h1>
-                <p class="text-slate-600">Monitor system performance and manage hospital operations</p>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card glass rounded-2xl p-6 reveal-up">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <!-- Risk Score -->
+                    <div class="glass rounded-2xl p-6 flex flex-col items-center justify-between fade-slide-up">
+                        <div class="w-full flex items-center justify-between mb-4">
+                            <h3 class="font-bold">Health Risk Score</h3>
+                            <i data-lucide="shield" class="w-5 h-5 text-green-400"></i>
+                        </div>
+                        <div class="relative w-40 h-40">
+                            <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10"/>
+                                <circle id="riskRing" cx="60" cy="60" r="50" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="94" class="progress-ring-fill"/>
                             </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <p class="text-3xl font-bold gradient-text">70%</p>
+                                <p class="text-xs text-gray-500">Low Risk</p>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-slate-800" id="total-patients">2,847</div>
-                            <div class="text-sm text-slate-500">Total Patients</div>
+                        <div class="w-full space-y-2 mt-4">
+                            <div class="flex justify-between text-xs"><span class="text-gray-500">Cardiovascular</span><span class="text-green-400">Good</span></div>
+                            <div class="h-1 bg-gray-800 rounded-full"><div class="h-1 bg-green-500 rounded-full" style="width:80%"></div></div>
+                            <div class="flex justify-between text-xs"><span class="text-gray-500">Metabolic</span><span class="text-yellow-400">Fair</span></div>
+                            <div class="h-1 bg-gray-800 rounded-full"><div class="h-1 bg-yellow-500 rounded-full" style="width:55%"></div></div>
+                            <div class="flex justify-between text-xs"><span class="text-gray-500">Respiratory</span><span class="text-green-400">Excellent</span></div>
+                            <div class="h-1 bg-gray-800 rounded-full"><div class="h-1 bg-green-500 rounded-full" style="width:92%"></div></div>
                         </div>
-                    </div>
-                    <div class="flex items-center text-green-600 text-sm">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                        +12.5% from last month
                     </div>
                 </div>
 
-                <div class="stat-card glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.1s">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
+                <!-- Patients + Appointments -->
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- Patient List -->
+                    <div class="lg:col-span-2 glass rounded-2xl p-6 fade-slide-up">
+                        <div class="flex items-center justify-between mb-5">
+                            <h3 class="font-bold text-lg">Today's Patients</h3>
+                            <button class="text-xs text-green-400 hover:text-green-300 transition-colors flex items-center gap-1">
+                                View all <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </button>
                         </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-slate-800" id="total-appointments">1,429</div>
-                            <div class="text-sm text-slate-500">Appointments</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center text-green-600 text-sm">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                        +8.2% from last month
-                    </div>
-                </div>
-
-                <div class="stat-card glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.2s">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                            </svg>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-slate-800" id="active-doctors">156</div>
-                            <div class="text-sm text-slate-500">Active Doctors</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center text-blue-600 text-sm">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
-                        </svg>
-                        No change from last month
-                    </div>
-                </div>
-
-                <div class="stat-card glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.3s">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                            </svg>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-slate-800" id="revenue">$2.4M</div>
-                            <div class="text-sm text-slate-500">Monthly Revenue</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center text-green-600 text-sm">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                        +15.3% from last month
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <!-- Patient Growth Chart -->
-                <div class="glass rounded-2xl p-6 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Patient Growth</h3>
-                    <canvas id="patientChart" width="400" height="200"></canvas>
-                </div>
-
-                <!-- Department Performance -->
-                <div class="glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.1s">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Department Performance</h3>
-                    <canvas id="departmentChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-
-            <!-- Additional Analytics Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <!-- Revenue Trends -->
-                <div class="glass rounded-2xl p-6 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Revenue Trends</h3>
-                    <canvas id="revenueChart" width="400" height="250"></canvas>
-                </div>
-
-                <!-- Staff Performance -->
-                <div class="glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.1s">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Staff Performance</h3>
-                    <canvas id="staffChart" width="400" height="250"></canvas>
-                </div>
-
-                <!-- System Health -->
-                <div class="glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.2s">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">System Health</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-slate-600">Server Uptime</span>
-                            <span class="font-bold text-green-600">99.9%</span>
-                        </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: 99.9%"></div>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-slate-600">Database Performance</span>
-                            <span class="font-bold text-blue-600">95%</span>
-                        </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-blue-500 h-2 rounded-full" style="width: 95%"></div>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-slate-600">API Response Time</span>
-                            <span class="font-bold text-purple-600">120ms</span>
-                        </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-purple-500 h-2 rounded-full" style="width: 85%"></div>
-                        </div>
-
-                        <div class="mt-6">
-                            <h4 class="font-medium text-slate-800 mb-3">Active Systems</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="text-center p-3 bg-green-50 rounded-lg">
-                                    <div class="text-lg font-bold text-green-600">24/24</div>
-                                    <div class="text-xs text-slate-600">EHR Systems</div>
+                        <div class="scroll-area max-h-72 space-y-1">
+                            <!-- Rows -->
+                            <div class="patient-row flex items-center gap-4 p-3 rounded-xl cursor-pointer">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-600 flex items-center justify-center text-xs font-bold text-black flex-shrink-0">SJ</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate">Sarah Johnson</p>
+                                    <p class="text-xs text-gray-500">Cardiac Checkup · 09:00 AM</p>
                                 </div>
-                                <div class="text-center p-3 bg-blue-50 rounded-lg">
-                                    <div class="text-lg font-bold text-blue-600">18/20</div>
-                                    <div class="text-xs text-slate-600">Lab Equipment</div>
+                                <span class="text-xs px-3 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex-shrink-0">Completed</span>
+                            </div>
+                            <div class="patient-row flex items-center gap-4 p-3 rounded-xl cursor-pointer">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">MK</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate">Michael Kim</p>
+                                    <p class="text-xs text-gray-500">ECG Follow-up · 10:30 AM</p>
                                 </div>
+                                <span class="text-xs px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 flex-shrink-0">In Progress</span>
+                            </div>
+                            <div class="patient-row flex items-center gap-4 p-3 rounded-xl cursor-pointer">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">AR</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate">Ana Rodriguez</p>
+                                    <p class="text-xs text-gray-500">Hypertension · 11:15 AM</p>
+                                </div>
+                                <span class="text-xs px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">Critical</span>
+                            </div>
+                            <div class="patient-row flex items-center gap-4 p-3 rounded-xl cursor-pointer">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center text-xs font-bold text-black flex-shrink-0">JL</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate">James Lee</p>
+                                    <p class="text-xs text-gray-500">Routine Checkup · 01:00 PM</p>
+                                </div>
+                                <span class="text-xs px-3 py-1 rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20 flex-shrink-0">Scheduled</span>
+                            </div>
+                            <div class="patient-row flex items-center gap-4 p-3 rounded-xl cursor-pointer">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">PW</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold truncate">Patricia Wong</p>
+                                    <p class="text-xs text-gray-500">Stress Test · 02:30 PM</p>
+                                </div>
+                                <span class="text-xs px-3 py-1 rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20 flex-shrink-0">Scheduled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming -->
+                    <div class="glass rounded-2xl p-6 fade-slide-up">
+                        <h3 class="font-bold text-lg mb-5">Weekly Activity</h3>
+                        <div class="flex items-end justify-between gap-1 h-28 mb-3">
+                            <!-- Bars -->
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-green-500 rounded-t-sm activity-bar" style="height:60%;animation-delay:.1s"></div>
+                                <span class="text-xs text-gray-600">M</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-green-500 rounded-t-sm activity-bar" style="height:85%;animation-delay:.2s"></div>
+                                <span class="text-xs text-gray-600">T</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-green-500/50 rounded-t-sm activity-bar" style="height:45%;animation-delay:.3s"></div>
+                                <span class="text-xs text-gray-600">W</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-green-500 rounded-t-sm activity-bar" style="height:100%;animation-delay:.4s"></div>
+                                <span class="text-xs text-gray-600">T</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-green-500/30 rounded-t-sm activity-bar" style="height:70%;animation-delay:.5s"></div>
+                                <span class="text-xs text-gray-600">F</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-gray-700 rounded-t-sm activity-bar" style="height:30%;animation-delay:.6s"></div>
+                                <span class="text-xs text-gray-600">S</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full bg-gray-700 rounded-t-sm activity-bar" style="height:20%;animation-delay:.7s"></div>
+                                <span class="text-xs text-gray-600">S</span>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-white/5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Avg. Patients/Day</span>
+                                <span class="text-sm font-bold text-green-400">14</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Prescriptions</span>
+                                <span class="text-sm font-bold">47</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Lab Orders</span>
+                                <span class="text-sm font-bold">23</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Hospital Operations & Analytics -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <!-- Appointment Analytics -->
-                <div class="glass rounded-2xl p-6 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Appointment Analytics</h3>
-                    <div class="space-y-6">
-                        <div class="flex items-center justify-between">
+                <!-- Recent Alerts -->
+                <div class="glass rounded-2xl p-6 fade-slide-up">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-bold text-lg">Recent Alerts & Notifications</h3>
+                        <span class="text-xs glass-green text-green-400 px-3 py-1 rounded-full border border-green-500/20">3 New</span>
+                    </div>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div class="glass-green rounded-xl p-4 flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i>
+                            </div>
                             <div>
-                                <div class="font-medium text-slate-800">Today's Appointments</div>
-                                <div class="text-sm text-slate-500">Scheduled vs Completed</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-sky-600">47/52</div>
-                                <div class="text-sm text-green-600">90.4% completion rate</div>
+                                <p class="text-sm font-semibold">Critical: Ana Rodriguez</p>
+                                <p class="text-xs text-gray-500">BP spiked to 180/110 — immediate review needed</p>
+                                <p class="text-xs text-red-400 mt-1">2 mins ago</p>
                             </div>
                         </div>
-
-                        <div class="flex items-center justify-between">
+                        <div class="glass rounded-xl p-4 flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="flask-conical" class="w-4 h-4 text-green-400"></i>
+                            </div>
                             <div>
-                                <div class="font-medium text-slate-800">Average Wait Time</div>
-                                <div class="text-sm text-slate-500">Patient arrival to consultation</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-green-600">12 min</div>
-                                <div class="text-sm text-green-600">↓ 2 min from last week</div>
+                                <p class="text-sm font-semibold">Lab Results Ready</p>
+                                <p class="text-xs text-gray-500">Michael Kim — CBC panel completed</p>
+                                <p class="text-xs text-gray-600 mt-1">15 mins ago</p>
                             </div>
                         </div>
-
-                        <div class="flex items-center justify-between">
+                        <div class="glass rounded-xl p-4 flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="calendar-check" class="w-4 h-4 text-green-400"></i>
+                            </div>
                             <div>
-                                <div class="font-medium text-slate-800">No-Show Rate</div>
-                                <div class="text-sm text-slate-500">Appointments not attended</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-orange-600">8.2%</div>
-                                <div class="text-sm text-red-600">↑ 1.1% from last week</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium text-slate-800">Patient Satisfaction</div>
-                                <div class="text-sm text-slate-500">Average rating (1-5 scale)</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-purple-600">4.7</div>
-                                <div class="text-sm text-green-600">↑ 0.2 from last month</div>
+                                <p class="text-sm font-semibold">Appointment Confirmed</p>
+                                <p class="text-xs text-gray-500">James Lee confirmed for 1:00 PM slot</p>
+                                <p class="text-xs text-gray-600 mt-1">1 hr ago</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Resource Utilization -->
-                <div class="glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.1s">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Resource Utilization</h3>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-sky-600 mb-2">87%</div>
-                            <div class="text-sm text-slate-600">Operating Rooms</div>
-                            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                <div class="bg-sky-500 h-2 rounded-full" style="width: 87%"></div>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-green-600 mb-2">92%</div>
-                            <div class="text-sm text-slate-600">Medical Equipment</div>
-                            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-purple-600 mb-2">78%</div>
-                            <div class="text-sm text-slate-600">Staff Utilization</div>
-                            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                <div class="bg-purple-500 h-2 rounded-full" style="width: 78%"></div>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-orange-600 mb-2">95%</div>
-                            <div class="text-sm text-slate-600">Bed Occupancy</div>
-                            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                <div class="bg-orange-500 h-2 rounded-full" style="width: 95%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-6">
-                        <h4 class="font-medium text-slate-800 mb-3">Peak Hours Analysis</h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-slate-600">Morning (8AM-12PM)</span>
-                                <span class="font-medium">High Utilization</span>
-                            </div>
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-slate-600">Afternoon (12PM-5PM)</span>
-                                <span class="font-medium">Peak Load</span>
-                            </div>
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-slate-600">Evening (5PM-9PM)</span>
-                                <span class="font-medium">Moderate</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activities & Quick Actions -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Recent Activities -->
-                <div class="lg:col-span-2 glass rounded-2xl p-6 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Recent Activities</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium text-slate-800">New patient registered</div>
-                                <div class="text-sm text-slate-500">John Smith completed registration • 2 hours ago</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium text-slate-800">Appointment scheduled</div>
-                                <div class="text-sm text-slate-500">Dr. Johnson booked for cardiology consultation • 4 hours ago</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium text-slate-800">Monthly report generated</div>
-                                <div class="text-sm text-slate-500">Financial report for March 2026 completed • 6 hours ago</div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium text-slate-800">New doctor onboarded</div>
-                                <div class="text-sm text-slate-500">Dr. Sarah Wilson joined the neurology department • 1 day ago</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="glass rounded-2xl p-6 reveal-up" style="animation-delay: 0.2s">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Quick Actions</h3>
-                    <div class="space-y-3">
-                        <button class="w-full magnetic-btn bg-sky-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-sky-700 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Add New User
-                        </button>
-
-                        <button class="w-full magnetic-btn bg-green-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-green-700 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            Schedule Appointment
-                        </button>
-
-                        <button class="w-full magnetic-btn bg-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-purple-700 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                            Generate Report
-                        </button>
-
-                        <button class="w-full magnetic-btn bg-orange-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-700 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            System Settings
-                        </button>
-                    </div>
-                </div>
-            </div>
+            </main>
         </div>
     </div>
 
     <script>
-        // Initialize GSAP
-        gsap.registerPlugin(ScrollTrigger);
+        lucide.createIcons();
 
-        // Custom Cursor
-        const cursor = document.getElementById('cursor');
-        const cursorFollower = document.getElementById('cursor-follower');
-        
-        document.addEventListener('mousemove', (e) => {
-            gsap.to(cursor, {
-                x: e.clientX - 10,
-                y: e.clientY - 10,
-                duration: 0.1
-            });
-            gsap.to(cursorFollower, {
-                x: e.clientX - 20,
-                y: e.clientY - 20,
-                duration: 0.3
-            });
-        });
-
-        // Magnetic effect for buttons
-        const magneticElements = document.querySelectorAll('.magnetic-btn');
-        magneticElements.forEach(elem => {
-            elem.addEventListener('mousemove', (e) => {
-                const rect = elem.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                
-                gsap.to(elem, {
-                    x: x * 0.3,
-                    y: y * 0.3,
-                    duration: 0.3
-                });
-            });
-            
-            elem.addEventListener('mouseleave', () => {
-                gsap.to(elem, {
-                    x: 0,
-                    y: 0,
-                    duration: 0.3
-                });
-            });
-            
-            elem.addEventListener('mouseenter', () => {
-                cursor.classList.add('hover');
-            });
-            
-            elem.addEventListener('mouseleave', () => {
-                cursor.classList.remove('hover');
-            });
-        });
-
-        // Scroll Progress
-        const scrollProgress = document.getElementById('scroll-progress');
-        window.addEventListener('scroll', () => {
-            const scrolled = window.scrollY;
-            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = scrolled / maxScroll;
-            scrollProgress.style.transform = `scaleX(${progress})`;
-        });
-
-        // Sidebar Toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            sidebarOverlay.classList.toggle('open');
-        });
-
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-        });
-
-        // Initialize Animations
-        function initAnimations() {
-            gsap.utils.toArray('.reveal-up').forEach(elem => {
-                gsap.fromTo(elem, 
-                    { opacity: 0, y: 50 },
-                    {
-                        opacity: 1,
-                        y: 0,
-                        duration: 1,
-                        ease: "power3.out",
-                        scrollTrigger: {
-                            trigger: elem,
-                            start: "top 85%",
-                            toggleActions: "play none none reverse"
-                        }
-                    }
-                );
-            });
-        }
-
-        // Initialize on load
-        window.addEventListener('load', () => {
-            initAnimations();
-            
-            // Initialize Charts after DOM is loaded
-            initializeCharts();
-        });
-
-        // Chart initialization function
-        function initializeCharts() {
-            // Patient Statistics Chart
-            const patientCtx = document.getElementById('patientChart');
-            if (patientCtx) {
-                const patientChart = new Chart(patientCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        datasets: [{
-                            label: 'New Patients',
-                            data: [120, 150, 180, 200, 250, 280],
-                            borderColor: '#0ea5e9',
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Department Performance Chart
-            const departmentCtx = document.getElementById('departmentChart');
-            if (departmentCtx) {
-                const departmentChart = new Chart(departmentCtx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Cardiology', 'Neurology', 'Orthopedics', 'Emergency', 'Others'],
-                        datasets: [{
-                            data: [25, 20, 18, 22, 15],
-                            backgroundColor: [
-                                '#0ea5e9',
-                                '#10b981',
-                                '#f59e0b',
-                                '#ef4444',
-                                '#8b5cf6'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Revenue Trends Chart
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx) {
-                const revenueChart = new Chart(revenueCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                        datasets: [{
-                            label: 'Monthly Revenue ($)',
-                            data: [2400000, 2500000, 2350000, 2600000, 2750000, 2900000, 3100000, 3200000],
-                            borderColor: '#0ea5e9',
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }, {
-                            label: 'Target Revenue ($)',
-                            data: [2300000, 2400000, 2500000, 2600000, 2700000, 2800000, 2900000, 3000000],
-                            borderColor: '#94a3b8',
-                            backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                            borderDash: [5, 5],
-                            tension: 0.4,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '$' + (value / 1000000) + 'M';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Staff Performance Chart
-            const staffCtx = document.getElementById('staffChart');
-            if (staffCtx) {
-                const staffChart = new Chart(staffCtx.getContext('2d'), {
-                    type: 'radar',
-                    data: {
-                        labels: ['Patient Care', 'Efficiency', 'Communication', 'Technical Skills', 'Teamwork', 'Problem Solving'],
-                        datasets: [{
-                            label: 'Current Performance',
-                            data: [88, 85, 92, 87, 90, 86],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                            pointBackgroundColor: '#10b981',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#10b981'
-                        }, {
-                            label: 'Target Performance',
-                            data: [85, 85, 85, 85, 85, 85],
-                            borderColor: '#94a3b8',
-                            backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                            pointBackgroundColor: '#94a3b8',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#94a3b8'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        },
-                        scales: {
-                            r: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if(window.innerWidth < 768) {
+                sb.classList.toggle('open');
+                overlay.classList.toggle('show');
+            } else {
+                sb.classList.toggle('collapsed');
             }
         }
+
+        // Counter animation
+        function animateCounter(el) {
+            const target = parseInt(el.dataset.target);
+            const dur = 1500;
+            const step = target / (dur / 16);
+            let cur = 0;
+            const t = setInterval(() => {
+                cur += step;
+                if(cur >= target) { el.textContent = target; clearInterval(t); }
+                else el.textContent = Math.floor(cur);
+            }, 16);
+        }
+
+        // Intersection observer
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if(e.isIntersecting) {
+                    e.target.classList.add('active');
+                    e.target.querySelectorAll('.counter').forEach(animateCounter);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+        document.querySelectorAll('.counter').forEach(animateCounter);
+
+        // Fade slide up elements
+        const fadeEls = document.querySelectorAll('.fade-slide-up');
+        setTimeout(() => fadeEls.forEach(el => el.style.animation = `fadeSlideUp .6s ease ${el.style.animationDelay||'0s'} forwards`), 100);
+
+        // Parallax orbs on mouse
+        document.addEventListener('mousemove', e => {
+            const mx = e.clientX / window.innerWidth - .5;
+            const my = e.clientY / window.innerHeight - .5;
+            document.querySelectorAll('.glow-orb').forEach((o,i) => {
+                const s = (i+1)*15;
+                o.style.transform = `translate(${mx*s}px, ${my*s}px)`;
+            });
+        });
     </script>
 </body>
 </html>
